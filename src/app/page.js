@@ -85,7 +85,7 @@ export default function Home() {
                 className="rounded-full p-1 sm:p-2 hover:bg-[#343537] hover:scale-110 transition w-8 h-8 sm:w-12 sm:h-12"
               />
               <h1 className="text-xl sm:text-2xl md:text-3xl font-light">
-                Hi, I'm DeepSeek.
+              {"Hi, I'm DeepSeek."}
               </h1>
             </div>
             <p className="text-xs sm:text-base mt-1 text-gray-300 text-center mb-6 sm:mb-10">
