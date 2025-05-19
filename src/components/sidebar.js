@@ -324,9 +324,9 @@ const Sidebar = () => {
                     height={28}
                     className="cursor-pointer opacity-90 hover:opacity-100"
                   />
-                  <span className="ml-2 text-white text-sm font-semibold tracking-wide">
+                  {/* <span className="ml-2 text-white text-sm font-semibold tracking-wide">
                     Sign In
-                  </span>
+                  </span> */}
                 </button>
               )}
             </div>
