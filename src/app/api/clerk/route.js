@@ -1,6 +1,6 @@
 import { Webhook } from "svix";
 import connectDB from "@/config/db";
-import User from "@/app/models/User";
+import User from "../../../models/User";
 import { headers } from "next/headers";
 import { NextRequest } from "next/server";
 
@@ -28,23 +28,32 @@ export async function POST(req) {
         image: data.image_url,
     };
 
-    await connectDB();
-
-    switch (type) {
-        case 'user.created':
+    try {
+        await connectDB();
+      
+        switch (type) {
+          case 'user.created':
             await User.create(userData);
+            console.log("User created:", userData);
             break;
-        case 'user.updated':
-            await User.findByIdAndUpdate(userData);
+          case 'user.updated':
+            await User.findByIdAndUpdate(userData._id, userData);
+            console.log("User updated:", userData);
             break;
-        case 'user.deleted':
-            await User.findByIdAndDelete(userData);
+          case 'user.deleted':
+            await User.findByIdAndDelete(userData._id);
+            console.log("User deleted:", userData._id);
             break;
-        default:
+          default:
             break;
+        }
+        console.log("🔔 Webhook triggered");
 
-    }
-
-       return NextRequest.json({message:'Event Arrived.'})
-
+        return NextResponse.json({ message: 'Event processed.' });
+      
+      } catch (error) {
+        console.error("Webhook error:", error);
+        return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+      }
+      
 }
