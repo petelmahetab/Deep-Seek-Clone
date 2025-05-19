@@ -21,6 +21,7 @@
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
     "react-markdown": "^10.1.0",
+    "regenerate-unicode-properties": "^10.2.0",
     "svix": "^1.65.0"
   },
   "devDependencies": {
