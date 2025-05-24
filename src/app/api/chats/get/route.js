@@ -1,30 +1,33 @@
 import connectDB from "@/config/db";
 import Chats from "@/app/models/Chat";
-import { getAuth } from '@clerk/nextjs/server'
+import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+export async function GET(req) {
+  try {
+    console.log("Request headers:", req.headers); 
+    const { userId } = getAuth(req);
+    console.log("User ID:", userId); 
 
-export async function GET(req){
-    try{
-        const {userId}=getAuth(req)
-
-        if(!userId){
-   return NextResponse.json({
-    success:false,message:"User not Authenticated",
-   },{status:401})
-        }
-
-        // If the user Exists then Connect to Db and fetch the all chats or messages from DB.
-        await connectDB();
-        const data=await Chats.find({userId});
-
-        return NextResponse.json({
-            success:true,data
-        },{status:200})
-
-    }catch(e){
-          return NextResponse.json({
-            success:false,message:e.message
-          },{status:500})
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: "User not authenticated" },
+        { status: 401 }
+      );
     }
+
+    await connectDB();
+    const data = await Chats.find({ userId })
+      .sort({ updatedAt: -1 })
+      .exec();
+    console.log("Fetched chats:", data); 
+
+    return NextResponse.json({ success: true, data }, { status: 200 });
+  } catch (e) {
+    console.error("Error in /api/chats/get:", e); 
+    return NextResponse.json(
+      { success: false, message: e.message || "Internal server error" },
+      { status: 500 }
+    );
+  }
 }

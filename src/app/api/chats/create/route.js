@@ -1,30 +1,40 @@
 import connectDB from "@/config/db";
 import Chats from "@/app/models/Chat";
-import { getAuth } from '@clerk/nextjs/server'
+import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-
 export async function POST(req) {
-    try {
-        const { userId } = getAuth(req);
+  try {
+    console.log("Request headers:", req.headers);
+    const { userId } = getAuth(req);
+    console.log("User ID:", userId);
 
-        if (!userId) {
-            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
-        }
-
-        // If user is authenticated then Connect it to DB and Saved in Chats Collection. and create a new chat.
-
-        const chatData = {
-            userId, Messages: [], name: 'New Chat',
-        }
-        await connectDB();
-        await Chats.create(chatData);
-        return NextResponse.json({
-            success: true,messsage:'Chat is created',
-        },{status:201})
-
-    } catch (e) {
-     return NextResponse.json({success:false,Messages:e.message},{status:500})
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
+    const chatData = {
+      userId,
+      messages: [],
+      name: "New Chat",
+    };
+
+    await connectDB();
+    const newChat = await Chats.create(chatData);
+    console.log("Created chat:", newChat);
+
+    return NextResponse.json(
+      { success: true, message: "Chat created", data: newChat },
+      { status: 201 }
+    );
+  } catch (e) {
+    console.error("Error in /api/chats/create:", e);
+    return NextResponse.json(
+      { success: false, message: e.message || "Error creating chat" },
+      { status: 500 }
+    );
+  }
 }
