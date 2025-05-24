@@ -2,8 +2,14 @@
 
 import Image from "next/image";
 import { assets } from "@/images/assets/assets.js";
+import { useAppContext } from "@/context/AppContext";
 
 export const PromptArea = ({ textareaRef, inputValue, setInputValue, handleKeyDown, handleSend }) => {
+ const {user,chats,setChats,selectedChat,setSelectedChat}=useAppContext();
+  
+ const sendPromt=async ()=>{
+  const promptCopy=prompt;
+ }
   return (
     <div className="w-full max-w-[90%] sm:max-w-2xl">
       <div className="bg-[#44464a] rounded-[20px] px-3 sm:px-6 py-1 sm:py-2 flex flex-col gap-2 sm:gap-4 shrink-0 hover:cursor-pointer">

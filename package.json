@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.18.5",
+    "@google/genai": "^1.0.1",
     "axios": "^1.9.0",
     "dotenv": "^16.5.0",
     "mongoose": "^8.14.3",
