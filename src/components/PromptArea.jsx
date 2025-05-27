@@ -10,6 +10,8 @@ import axios from "axios";
 export const PromptArea = ({ textareaRef, handleKeyDown }) => {
   const [prompt, setPrompt] = useState("");
   const { user, selectedChat, setSelectedChat, setChats, isLoading, createNewChat } = useAppContext();
+  const [assistantMessage, setAssistantMessage] = useState('');
+
 
   const sendPrompt = async (e) => {
     e.preventDefault();
@@ -48,12 +50,15 @@ export const PromptArea = ({ textareaRef, handleKeyDown }) => {
         )
       );
 
-      setSelectedChat((prev) => ({
-        ...prev,
-        messages: [...prev.messages, userPrompt],
-      }));
-
-      const { data } = await axios.post("/api/chat/ai", {
+      setSelectedChat((prev) => {
+        const updatedMessages = [
+          ...(prev?.messages?.slice(0, -1) || []),
+          { ...assistantMessage },
+        ];
+        return { ...prev, messages: updatedMessages };
+      });
+      
+      const { data } = await axios.post("/api/chats/ai", {
         chatId: currentChat._id,
         prompt,
       });

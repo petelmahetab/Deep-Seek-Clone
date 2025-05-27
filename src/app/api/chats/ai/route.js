@@ -1,61 +1,82 @@
-export const maxDuration=60;
+export const maxDuration = 60;
 import Chats from "@/app/models/Chat";
 import connectDB from "@/config/db";
-import { getAuth } from "@clerk/nextjs/dist/types/server";
-import { GoogleGenAI } from "@google/generative-ai";
+import { auth } from "@clerk/nextjs/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
-const ai = new GoogleGenAI({ apiKey: process.env.DEEPSEEK_API_KEY });
-
-
+const ai = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 export async function POST(req) {
     try {
-        const { userId } = getAuth(req);
-       
+        // Get userId from Clerk auth
+        const { userId } = auth();
         if (!userId) {
-            return NextResponse.json({
-                success: false,
-                message: 'User not Authenticated'
-            }),{status:401}
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: "User not authenticated",
+                },
+                { status: 401 }
+            );
         }
-        //FInd the Chat documents in DB based on User and Chat id.
-        const { chatId, prompt } = await req.json();
 
+        // Parse and validate request body
+        const { chatId, prompt } = await req.json();
+        if (!chatId || !prompt || typeof prompt !== "string") {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: "chatId and prompt are required and must be valid",
+                },
+                { status: 400 }
+            );
+        }
+
+        // Connect to database
         await connectDB();
-        const data = await Chats.findOne({ userId, _id: chatId })
+
+        // Find chat document
+        const data = await Chats.findOne({ userId, _id: chatId });
         if (!data) {
             return NextResponse.json(
-              {
-                success: false,
-                message: "Chat not found",
-              },
-              { status: 404 }
+                {
+                    success: false,
+                    message: "Chat not found",
+                },
+                { status: 404 }
             );
-          }
-        //create the for users Message Obj
-        const userPrompt = {
-            role: 'user',
-            content: prompt,
-            timestamp: Date.now()
         }
+
+        const userPrompt = {
+            role: "user",
+            content: prompt,
+            timestamp: Date.now(),
+        };
         data.messages.push(userPrompt);
 
-        const model=ai.getGenerativeModel({model:'gemini-pro'})
-        const result=await model.generateContent(prompt)
-        const response=await result.response;
-        const aiMessage={
-            role:'assistant',content:response.text(),timestamp:Date.now(),
+        const model = ai.getGenerativeModel({ model: "gemini-pro" });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const aiMessage = {
+            role: "assistant",
+            content: response.text(),
+            timestamp: Date.now(),
         };
 
-        data.messages.push(aiMessage)
+        
+        data.messages.push(aiMessage);
         await data.save();
-        return NextResponse.json({success:true,data:aiMessage},{status:200})
 
+        return NextResponse.json({ success: true, data: aiMessage }, { status: 200 });
     } catch (e) {
-        return NextResponse.json({
-            success: false, error: e.message
-        }, { status: 500 })
+        console.error("Error in POST /api/chat:", e);
+        return NextResponse.json(
+            {
+                success: false,
+                error: e.message,
+            },
+            { status: 500 }
+        );
     }
-
 }

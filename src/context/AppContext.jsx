@@ -1,4 +1,3 @@
-// src/context/AppContext.jsx
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
@@ -14,7 +13,7 @@ export const useAppContext = () => {
 
 export const AppContextProvider = ({ children }) => {
   const { user } = useUser();
-  const { getToken } = useAuth();
+  const { getToken } = useAuth(); // getToken is available here
 
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
@@ -22,14 +21,14 @@ export const AppContextProvider = ({ children }) => {
 
   const createNewChat = async () => {
     try {
-      if (!user) {
-        toast.error("User not authenticated");
-        return null;
+      const token = await getToken(); 
+      console.log("Clerk token for createNewChat:", token);
+
+      if (!token) {
+        throw new Error("No authentication token available");
       }
 
-      const token = await getToken();
-      console.log("Clerk token for create:", token);
-      const { data } = await axios.post(
+      const response = await axios.post(
         "/api/chats/create",
         {},
         {
@@ -38,20 +37,11 @@ export const AppContextProvider = ({ children }) => {
           },
         }
       );
-
-      if (data.success) {
-        console.log("New chat created:", data.data);
-        setChats((prevChats) => [data.data, ...prevChats]);
-        setSelectedChat(data.data);
-        return data.data;
-      } else {
-        toast.error(data.message || "Failed to create chat");
-        return null;
-      }
-    } catch (e) {
-      console.error("Error in createNewChat:", e);
-      toast.error(e.message || "Error creating chat");
-      return null;
+      return response.data;
+    } catch (error) {
+      console.error("Error in createNewChat:", error);
+      toast.error(error.message || "Failed to create a new chat");
+      throw error;
     }
   };
 
@@ -60,6 +50,11 @@ export const AppContextProvider = ({ children }) => {
       setIsLoading(true);
       const token = await getToken();
       console.log("Clerk token for fetch:", token);
+
+      if (!token) {
+        throw new Error("No authentication token available");
+      }
+
       const { data } = await axios.get("/api/chats/get", {
         headers: {
           Authorization: `Bearer ${token}`,

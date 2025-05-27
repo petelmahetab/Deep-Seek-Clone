@@ -1,12 +1,12 @@
 import connectDB from "@/config/db";
 import Chats from "@/app/models/Chat";
-import { getAuth } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
   try {
     console.log("Request headers:", req.headers); 
-    const { userId } = getAuth(req);
+    const { userId } = auth(req);
     console.log("User ID:", userId); 
 
     if (!userId) {
